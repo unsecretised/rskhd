@@ -1,17 +1,44 @@
 use std::thread;
 
+use clap::Parser;
 use global_hotkey::{GlobalHotKeyEvent, HotKeyState};
 use objc2::MainThreadMarker;
 use objc2_app_kit::NSApp;
 
-use crate::{app::App, config::Config};
+use crate::{
+    app::App,
+    config::Config,
+    service::{install, start, stop, uninstall},
+};
 
 mod app;
 mod config;
+mod service;
+
+#[derive(Default, Parser)]
+enum Action {
+    InstallService,
+    UninstallService,
+    RunService,
+    StopService,
+    #[default]
+    Run,
+}
 
 fn main() {
-    let config = Config::get_config();
+    let action = Action::parse();
 
+    match action {
+        Action::InstallService => install(),
+        Action::UninstallService => uninstall(),
+        Action::Run => run(),
+        Action::RunService => start(),
+        Action::StopService => stop(),
+    };
+}
+
+fn run() {
+    let config = Config::get_config();
     let app = App::new(config);
     app.register();
 
